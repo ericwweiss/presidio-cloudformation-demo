@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "NetworkStackName",
+    "ParameterValue": "TestVPC"
+  },
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "DemoKeyPair"
+  },
+  {
+    "ParameterKey": "AmiId",
+    "ParameterValue": "linux-ami"
+  },
+  {
+    "ParameterKey": "EnvironmentType",
+    "ParameterValue": "development"
+  }
+]

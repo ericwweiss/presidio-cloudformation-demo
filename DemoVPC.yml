@@ -1,0 +1,129 @@
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'false'
+      InstanceTenancy: default
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref "VPC"
+  VPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId:
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+       RouteTableId:
+         Ref: RouteTable
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: InternetGateway
+  PublicSubnetRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet
+      RouteTableId:
+        Ref: RouteTable
+  NetworkACL:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+       VpcId:
+         Ref: VPC
+  PublicSubnetNetworkACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref NetworkACL
+      SubnetId: !Ref PublicSubnet
+  #Inbound ACEs
+  InboundAllowHTTP:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      RuleNumber: 100
+      NetworkAclId: !Ref NetworkACL
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+       From: 80
+       To: 80
+      Egress:  false
+      RuleAction: Allow
+  InboundAllowHTTPS:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      RuleNumber: 200
+      NetworkAclId: !Ref NetworkACL
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+       From: 443
+       To: 443
+      Egress:  false
+      RuleAction: Allow
+  InboundAllowSSH:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      RuleNumber: 300
+      NetworkAclId: !Ref NetworkACL
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+       From: 22
+       To: 22
+      Egress:  false
+      RuleAction: Allow
+  InboundAllowEphemeral:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      RuleNumber: 400
+      NetworkAclId: !Ref NetworkACL
+      CidrBlock: 0.0.0.0/0
+      Protocol: 6
+      PortRange:
+       From: 1024
+       To: 65535
+      Egress:  false
+      RuleAction: Allow
+  #Outbound ACEs
+  OutboundAllowAll:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      RuleNumber: 100
+      NetworkAclId: !Ref NetworkACL
+      CidrBlock: 0.0.0.0/0
+      Protocol: -1
+      Egress:  true
+      RuleAction: Allow
+
+
+Outputs:
+  VPCId:
+    Description: VPC ID
+    Value:
+      Ref: VPC
+    Export:
+      Name:
+        !Sub '${AWS::StackName}-VpcId'
+  PublicSubnet:
+    Description: Public Subnet
+    Value:
+      Ref: PublicSubnet
+    Export:
+      Name:
+        !Sub '${AWS::StackName}-PublicSubnet'

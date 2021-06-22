@@ -1,0 +1,14 @@
+[
+  {
+    "Key": "ApplicationName",
+    "Value": "myApp"
+  },
+  {
+    "Key": "TeamName",
+    "Value": "myTeam"
+  },
+  {
+    "Key": "EnvironmentType",
+    "Value": "development"
+  }
+]

@@ -1,0 +1,28 @@
+#Readme file for rcadwallader CloudFomation demo
+
+PresidioTemplate.yml:
+  -Creates a new KMS Key
+  -Creates a new Secret Manager Secret, encrypted with the KMS Key
+  -Creates a new EC2 instance
+    -instanceType mapped to EnvironmentType parameter
+    -user script retrieves the new Secret and writes '/home/ec2-user/secret.txt'
+  -Creates an EIP for the EC2 instance
+  -Creates an S3 Bucket for use by the EC2 Instance
+  -Creates a SecurityGroup for the EC2 instance that allows inbound SSH and HTTP/S traffic, and all outbound traffic
+
+  - Assumptions:
+        Existing VPC with exported values for VpcId and SubnetId
+        A pre-existing KeyPair for SSH
+        A Parameter Store value with the EC2 AmiId
+
+ DemoVPC.yml:
+  -Creates a new VPC with a Public subnet and an Internet Gateway
+  -Network ACL allows SSH, HTTP/S, and ephemeral ports in, and all traffic out.
+  -Exports:
+    ${AWS::StackName}-VpcId
+    ${AWS::StackName}-PublicSubnet
+
+pd-stack-deploy.sh
+  -takes a name for the stack to be created as an argument
+  -uses 'PresidioParameters.json' for parameter values
+  -uses 'PresidioTags.json' to add tags to created resources
