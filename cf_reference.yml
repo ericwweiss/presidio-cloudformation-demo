@@ -1,0 +1,124 @@
+Type: AWS::KMS::Key
+Properties: 
+  Description: String
+  Enabled: Boolean
+  EnableKeyRotation: Boolean
+  KeyPolicy: Json
+  KeySpec: String
+  KeyUsage: String
+  MultiRegion: Boolean
+  PendingWindowInDays: Integer
+  Tags: 
+    - Tag
+
+Type: AWS::SecretsManager::Secret
+Properties: 
+  Description: String
+  GenerateSecretString: 
+    GenerateSecretString
+  KmsKeyId: String
+  Name: String
+  ReplicaRegions: 
+    - ReplicaRegion
+  SecretString: 
+    String
+  Tags: 
+    - Tag
+
+Type: AWS::EC2::Instance
+Properties: 
+  AdditionalInfo: String
+  Affinity: String
+  AvailabilityZone: String
+  BlockDeviceMappings: 
+    - BlockDeviceMapping
+  CpuOptions: 
+    CpuOptions
+  CreditSpecification: 
+    CreditSpecification
+  DisableApiTermination: Boolean
+  EbsOptimized: Boolean
+  ElasticGpuSpecifications: 
+    - ElasticGpuSpecification
+  ElasticInferenceAccelerators: 
+    - ElasticInferenceAccelerator
+  EnclaveOptions: 
+    EnclaveOptions
+  HibernationOptions: 
+    HibernationOptions
+  HostId: String
+  HostResourceGroupArn: String
+  IamInstanceProfile: String
+  ImageId: String
+  InstanceInitiatedShutdownBehavior: String
+  InstanceType: String
+  Ipv6AddressCount: Integer
+  Ipv6Addresses: 
+    - InstanceIpv6Address
+  KernelId: String
+  KeyName: String
+  LaunchTemplate: 
+    LaunchTemplateSpecification
+  LicenseSpecifications: 
+    - LicenseSpecification
+  Monitoring: Boolean
+  NetworkInterfaces: 
+    - NetworkInterface
+  PlacementGroupName: String
+  PrivateIpAddress: String
+  RamdiskId: String
+  SecurityGroupIds: 
+    - String
+  SecurityGroups: 
+    - String
+  SourceDestCheck: Boolean
+  SsmAssociations: 
+    - SsmAssociation
+  SubnetId: String
+  Tags: 
+    - Tag
+  Tenancy: String
+  UserData: String
+  Volumes: 
+    - Volume
+
+Type: AWS::IAM::InstanceProfile
+Properties: 
+  InstanceProfileName: String
+  Path: String
+  Roles: 
+    - String
+
+Type: AWS::IAM::Role
+Properties: 
+  AssumeRolePolicyDocument: Json
+  Description: String
+  ManagedPolicyArns: 
+    - String
+  MaxSessionDuration: Integer
+  Path: String
+  PermissionsBoundary: String
+  Policies: 
+    - Policy
+  RoleName: String
+  Tags: 
+    - Tag
+
+Type: AWS::IAM::InstanceProfile
+Properties: 
+  InstanceProfileName: String
+  Path: String
+  Roles: 
+    - String
+
+Type: AWS::EC2::SecurityGroup
+Properties: 
+  GroupDescription: String
+  GroupName: String
+  SecurityGroupEgress: 
+    - Egress
+  SecurityGroupIngress: 
+    - Ingress
+  Tags: 
+    - Tag
+  VpcId: String    
