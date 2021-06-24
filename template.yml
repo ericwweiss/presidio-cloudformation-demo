@@ -4,6 +4,15 @@ Description: 'AWS CloudFormation Template:
   and single static IP addresses in an existing VPC. It assumes you have already
   created a VPC.'
 Parameters:
+  NetworkStackName:
+    Description: >-
+      Name of an active CloudFormation stack that contains the networking
+      resources, such as the subnet and security group, that will be used in
+      this stack.
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName
@@ -74,7 +83,7 @@ Resources:
         PasswordLength: 16
         ExcludeCharacters: '":;@/\'
       KmsKeyId: !Ref KmsKey
-      Name: POCSecret
+      Name: PresidioPOCSecret
   EIP1:
     Type: AWS::EC2::EIP
     Properties:
@@ -148,9 +157,9 @@ Resources:
       Tags:
       - Key: Name
         Value: POC
-            SubnetId:
+      SubnetId:
         Fn::ImportValue:
-              !Sub '${NetworkStackName}-PublicSubnet'
+          !Sub '${NetworkStackName}-PublicSubnet'
       SecurityGroupIds:
         - !Ref SecurityGroup
       UserData:
@@ -158,7 +167,7 @@ Resources:
           #!/bin/bash
           aws secretsmanager get-secret-value \
             --region ${AWS::Region} \
-            --secret-id POCSecret \
+            --secret-id PresidioPOCSecret \
             --query SecretString \
             >> /home/ec2-user/secret.txt
   Eth0:

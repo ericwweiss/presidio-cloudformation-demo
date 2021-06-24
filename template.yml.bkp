@@ -4,6 +4,15 @@ Description: 'AWS CloudFormation Template:
   and single static IP addresses in an existing VPC. It assumes you have already
   created a VPC.'
 Parameters:
+  NetworkStackName:
+    Description: >-
+      Name of an active CloudFormation stack that contains the networking
+      resources, such as the subnet and security group, that will be used in
+      this stack.
+    Type: String
+    MinLength: 1
+    MaxLength: 255
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName
@@ -47,6 +56,34 @@ Mappings:
       x64: ami-0aeeebd8d2ab47354
 
 Resources:
+  KmsKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      Description: KMS Symetric Key
+      Enabled: true
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: presidio-poc
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'kms:*'
+            Resource: '*'
+      KeySpec: SYMMETRIC_DEFAULT
+      PendingWindowInDays: 7
+  SecretManagerSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Description: Secret encrypted with a KMS CMK
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "presidopoc"}'
+        GenerateStringKey: password
+        PasswordLength: 16
+        ExcludeCharacters: '":;@/\'
+      KmsKeyId: !Ref KmsKey
+      Name: PresidioPOCSecret
   EIP1:
     Type: AWS::EC2::EIP
     Properties:
@@ -66,11 +103,52 @@ Resources:
         FromPort: '22'
         ToPort: '22'
         CidrIp: !Ref 'SSHLocation'
+    InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: InstanceProfile
+      Path: /
+      Roles:
+        - !Ref EC2Role
+  EC2Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: GetSecret
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'secretsmanager:GetSecretValue'
+                  - 'secretsmanager:DescribeSecret'
+                  - 'kms:Decrypt'
+                Resource:
+                  - !Ref SecretManagerSecret
+                  - !GetAtt KmsKey.Arn
+              - Effect: Allow
+                Action:
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                  - 's3:PutObjectAcl'
+                Resource:
+                  - !GetAtt S3Bucket.Arn
   EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       ImageId: !FindInMap [AWSRegionArchAMI2, !Ref 'AWS::Region', !FindInMap [AWSRegionArchAMI2,
           !Ref 'InstanceType', Arch]]
+      IamInstanceProfile: !Ref InstanceProfile
       InstanceType: !Ref 'InstanceType'
       KeyName: !Ref 'KeyName'
       NetworkInterfaces:
@@ -79,6 +157,19 @@ Resources:
       Tags:
       - Key: Name
         Value: POC
+      SubnetId:
+        Fn::ImportValue:
+          !Sub '${NetworkStackName}-PublicSubnet'
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          aws secretsmanager get-secret-value \
+            --region ${AWS::Region} \
+            --secret-id PresidioPOCSecret \
+            --query SecretString \
+            >> /home/ec2-user/secret.txt
   Eth0:
     Type: AWS::EC2::NetworkInterface
     Properties:
@@ -91,7 +182,7 @@ Resources:
       SubnetId: !Ref 'SubnetId'
       Tags:
       - Key: Name
-        Value: Interface 0
+        Value: Presidio POC Interface
       - Key: Interface
         Value: eth0
 
