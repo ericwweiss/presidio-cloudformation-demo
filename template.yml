@@ -15,7 +15,7 @@ Parameters:
     AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
   KeyName:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
-    Type: AWS::EC2::KeyPair::KeyName
+    Type: AWS::EC2::KeyPair::MyKeyPair
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
   InstanceType:
     Description: EC2 instance type
